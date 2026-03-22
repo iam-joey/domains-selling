@@ -1,65 +1,106 @@
-import Image from "next/image";
+import { createClient } from '@/lib/supabase/server'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
-export default function Home() {
+export default async function HomePage() {
+  const supabase = await createClient()
+  const { data: listings } = await supabase
+    .from('listings')
+    .select('*')
+    .eq('status', 'verified')
+    .order('created_at', { ascending: false })
+    .limit(6)
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-white">
+      {/* Nav */}
+      <header className="border-b">
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+          <span className="font-bold text-lg">DomainMarket</span>
+          <div className="flex items-center gap-4">
+            <Link href="/listings" className="text-sm text-gray-600 hover:text-gray-900">Browse</Link>
+            <Link href="/sign-in">
+              <Button size="sm">List a Domain</Button>
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* Hero */}
+      <section className="max-w-5xl mx-auto px-4 py-20 text-center">
+        <h1 className="text-5xl font-bold tracking-tight mb-4">
+          Buy &amp; Sell Premium Domains
+        </h1>
+        <p className="text-xl text-gray-500 mb-8 max-w-xl mx-auto">
+          Every listing is verified. Discover domains that are actually available and reach sellers directly.
+        </p>
+        <div className="flex gap-3 justify-center">
+          <Link href="/listings">
+            <Button size="lg">Browse Domains</Button>
+          </Link>
+          <Link href="/sign-in">
+            <Button size="lg" variant="outline">List Your Domain</Button>
+          </Link>
         </div>
-      </main>
+      </section>
+
+      {/* Recent listings */}
+      {listings && listings.length > 0 && (
+        <section className="max-w-5xl mx-auto px-4 pb-20">
+          <h2 className="text-xl font-semibold mb-5">Recently Listed</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {listings.map((listing) => (
+              <Link key={listing.id} href={`/listings/${listing.id}`}>
+                <Card className="hover:shadow-md transition-shadow h-full">
+                  <CardContent className="pt-5 flex flex-col gap-2">
+                    <p className="font-semibold text-base truncate">{listing.domain_name}</p>
+                    <Badge variant="outline" className="w-fit text-xs">{listing.category}</Badge>
+                    <p className="text-sm text-gray-500 line-clamp-2 mt-1">
+                      {listing.description || 'No description provided.'}
+                    </p>
+                    <p className="font-bold text-lg mt-auto pt-2">
+                      {listing.asking_price
+                        ? `$${(listing.asking_price / 100).toLocaleString()}`
+                        : 'Price on request'}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+          <div className="text-center mt-8">
+            <Link href="/listings">
+              <Button variant="outline">View All Listings →</Button>
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* How it works */}
+      <section className="bg-gray-50 py-16">
+        <div className="max-w-5xl mx-auto px-4">
+          <h2 className="text-xl font-semibold mb-8 text-center">How it works</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+            <div>
+              <div className="text-3xl mb-3">1</div>
+              <h3 className="font-medium mb-1">List your domain</h3>
+              <p className="text-sm text-gray-500">Sign in with Google or GitHub and create a listing in minutes.</p>
+            </div>
+            <div>
+              <div className="text-3xl mb-3">2</div>
+              <h3 className="font-medium mb-1">Verify ownership</h3>
+              <p className="text-sm text-gray-500">Add a DNS TXT record to prove you own the domain. We check automatically.</p>
+            </div>
+            <div>
+              <div className="text-3xl mb-3">3</div>
+              <h3 className="font-medium mb-1">Get contacted by buyers</h3>
+              <p className="text-sm text-gray-500">Buyers discover your listing and reach out directly via your contact email.</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-  );
+  )
 }
