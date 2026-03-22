@@ -86,7 +86,7 @@ export default async function HomePage() {
             <div>
               <div className="text-3xl mb-3">1</div>
               <h3 className="font-medium mb-1">List your domain</h3>
-              <p className="text-sm text-gray-500">Sign in with Google or GitHub and create a listing in minutes.</p>
+              <p className="text-sm text-gray-500">Sign in with Google and create a listing in minutes.</p>
             </div>
             <div>
               <div className="text-3xl mb-3">2</div>

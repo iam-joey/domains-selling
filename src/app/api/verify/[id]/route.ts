@@ -25,8 +25,8 @@ export async function POST(
   // DNS TXT lookup via Google DNS-over-HTTPS (free, no API key)
   try {
     const res = await fetch(
-      `https://dns.google/resolve?name=${encodeURIComponent(listing.domain_name)}&type=TXT`,
-      { headers: { Accept: 'application/json' } }
+      `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(listing.domain_name)}&type=TXT`,
+      { headers: { Accept: 'application/dns-json' } }
     )
     const dns = await res.json()
 
@@ -35,12 +35,15 @@ export async function POST(
       .filter((r: { type: number }) => r.type === 16)
       .map((r: { data: string }) => r.data.replace(/"/g, '').trim())
 
-    const verified = txtRecords.some((txt) => txt === listing.verify_token)
+    console.log('verify_token from DB:', listing.verify_token)
+    console.log('TXT records found:', txtRecords)
+
+    const verified = txtRecords.some((txt) => txt.includes(listing.verify_token))
 
     if (verified) {
       await supabase
         .from('listings')
-        .update({ status: 'verified' })
+        .update({ status: 'verified', verified_at: new Date().toISOString() })
         .eq('id', id)
     }
 
